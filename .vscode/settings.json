@@ -1,0 +1,15 @@
+{
+    "idf.portWin": "COM20",
+    "idf.adapterTargetName": "esp32s3",
+    "idf.openOcdConfigs": [
+      "board/esp32s3-builtin.cfg"
+    ],
+    "idf.flashType": "UART",
+    "files.associations": {
+      "stdio.h": "c",
+      "101_hi.h": "c",
+      "esp_system.h": "c",
+      "esp_http_server.h": "c"
+    },
+    "memory-view.showMemoryPanel": true
+}
