@@ -10,4 +10,5 @@ void app_main(void)
     MyRemoteDevice mrd;
     mrd.sayHello();
     mrd.connectToWifi();
+    mrd.createWebsocketDeviceServer();
 }
