@@ -1,0 +1,10 @@
+prompt
+in esp idf in cpp i want to create a method that connects to the wifi.
+i want it to be thoro. 
+chek if nvs init was called and if not call it
+wifi needs some more settings like :
+nvs_flash_init
+esp_netif_init
+esp_event_loop_create_default
+i want to test all and make sure that no errors happen and all will bve ready to connect.
+if nvs_flash_init is called more than once dont let tit make a fatal error etc.
