@@ -1,0 +1,51 @@
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<div id="app">
+  <div style="display:flex;gap:10px">
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <!-- Left column: Odd numbers -->
+      <div v-for="n in oddNumbers" :key="n" style="height:30px">
+        <button
+          @click="handleClick(n)"
+          style="width:30px;height:30px;border-radius:50%;border:2px solid #333;background:white;cursor:pointer">
+          {{ n }}
+        </button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <!-- Right column: Even numbers -->
+      <div v-for="n in evenNumbers" :key="n" style="height:30px">
+        <button 
+          @click="handleClick(n)"
+          style="width:30px;height:30px;border-radius:50%;border:2px solid #333;background:white;cursor:pointer">
+          {{ n }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- <div style="margin-top:10px">Clicked button: {{ lastClicked }}</div> -->
+</div>
+<script>
+const { createApp, ref, computed } = Vue
+createApp({
+  setup() {
+    const total = ref(6)
+    const lastClicked = ref(null)
+    const oddNumbers = computed(() => 
+      Array.from({length: total.value}, (_, i) => i).filter(n => n % 2 !== 0)
+    )
+    const evenNumbers = computed(() => 
+      Array.from({length: total.value}, (_, i) => i).filter(n => n % 2 === 0)
+    )
+    const handleClick = (n) => {
+      lastClicked.value = n
+      console.log('Button clicked:', n)
+    }
+    return { 
+      oddNumbers,
+      evenNumbers,
+      lastClicked,
+      handleClick
+    }
+  }
+}).mount('#app')
+</script>

@@ -178,14 +178,14 @@ esp_err_t MyRemoteDevice::connectToWifiCleanup(esp_err_t err){
     }
     return err;
 }
-void MyRemoteDevice::wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+void MyRemoteDevice::wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* eventData) {
     const char*TAG= "MyRemoteDeviceWifHandler";
     switch (event_id) {
         case WIFI_EVENT_STA_START:
             ESP_LOGI(TAG, "WiFi station started");
             break;
         case WIFI_EVENT_STA_DISCONNECTED: {
-            wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
+            wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) eventData;
             ESP_LOGW(TAG, "Disconnected from WiFi, reason: %d", event->reason);
             xEventGroupSetBits(sWifiEventGroup, WIFIFAILBIT);
             break;
@@ -195,10 +195,10 @@ void MyRemoteDevice::wifiEventHandler(void* arg, esp_event_base_t event_base, in
     }
 }
 
-void MyRemoteDevice::ipEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+void MyRemoteDevice::ipEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* eventData) {
     const char*TAG= "MyRemoteDeviceIpEventHandler";
     if (event_id == IP_EVENT_STA_GOT_IP) {
-        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+        ip_event_got_ip_t* event = (ip_event_got_ip_t*) eventData;
         ESP_LOGI(TAG, "Got IP address: " IPSTR, IP2STR(&event->ip_info.ip));
         xEventGroupSetBits(sWifiEventGroup, WIFICONNECTEDBIT);
     }
@@ -247,21 +247,66 @@ void MyRemoteDevice::createWebsocketDeviceServer(){
         .transport = WEBSOCKET_TRANSPORT_OVER_SSL,
         .skip_cert_common_name_check = true,
     };
-
     this->client = esp_websocket_client_init(&websocketCfg);
     esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocketEventHandler, (void*)this->client);
-
     esp_websocket_client_start(this->client);
-
-
-
 }
-void MyRemoteDevice::websocketEventHandler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+void MyRemoteDevice::websocketEventHandler(void *handler_args, esp_event_base_t base, int32_t event_id, void *eventData)
 {
-    
+    char TAG[] = "MyRemoteDeviceWebsocketEventHandler";
+    switch (event_id) {
+        case WEBSOCKET_EVENT_CONNECTED:
+            ESP_LOGI(TAG, "WEBSOCKET_EVENT_CONNECTED");
+            break;
+        case WEBSOCKET_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "WEBSOCKET_EVENT_DISCONNECTED");
+            break;
+        case WEBSOCKET_EVENT_DATA: {
+            websocketEventHandlerHandleData(handler_args, base, event_id, eventData);
+            break;
+            // char *payload = (char *)data->data_ptr;
+            // int len = data->data_len;
+            // char jsonStr[len + 1];
+            // memcpy(jsonStr, payload, len);
+            // jsonStr[len] = '\0';
+            // cJSON *json = cJSON_Parse(jsonStr);
+            // if (json) {
+            //     cJSON *resourceId = cJSON_GetObjectItem(json, "resourceId");
+            //     cJSON *msg = cJSON_GetObjectItem(json, "msg");
+            //     if (cJSON_IsNumber(resourceId) && cJSON_IsString(msg)) {
+            //         cJSON *msgJson = cJSON_Parse(msg->valuestring);
+            //         if (msgJson) {
+            //             cJSON *action = cJSON_GetObjectItem(msgJson, "action");
+            //             if (cJSON_IsString(action) && strcmp(action->valuestring, "getPage") == 0) {
+            //                 printf("%s\n",homePage);
+            //                 cJSON *response = cJSON_CreateObject();
+            //                 cJSON *responseMsg = cJSON_CreateObject();
+            //                 cJSON_AddNumberToObject(responseMsg, "resourceId", resourceId->valueint);
+            //                 cJSON_AddStringToObject(responseMsg, "action", "respondingToGetPage");
+            //                 cJSON_AddStringToObject(responseMsg, "page", homePage);
+            //                 cJSON_AddItemToObject(response, "msg", responseMsg);
+            //                 char *responseStr = cJSON_PrintUnformatted(response);
+            //                 esp_websocket_client_send_text(client, responseStr, strlen(responseStr), portMAX_DELAY);
+            //                 cJSON_Delete(response);
+            //                 free(responseStr);
+            //             }
+            //             cJSON_Delete(msgJson);
+            //         }
+            //     }
+            //     cJSON_Delete(json);
+            // }
+            // break;
+        }
+        case WEBSOCKET_EVENT_ERROR:
+            ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
+            break;
+    }
+}
+void MyRemoteDevice::websocketEventHandler1(void *handler_args, esp_event_base_t base, int32_t event_id, void *eventData)
+{
     char TAG[] = "MyRemoteDeviceWebsocketEventHandler";
     char homePage[] = "hi from device 1 what next? <br>will do button";
-    esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)event_data;
+    esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)eventData;
     esp_websocket_client_handle_t client = (esp_websocket_client_handle_t)handler_args;
     switch (event_id) {
         case WEBSOCKET_EVENT_CONNECTED:
@@ -304,13 +349,26 @@ void MyRemoteDevice::websocketEventHandler(void *handler_args, esp_event_base_t 
             }
             break;
         }
-           
         case WEBSOCKET_EVENT_ERROR:
             ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
             break;
     }
 }
+void MyRemoteDevice::websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData){
+    char homePage[] = "hi from device 1 what next? <br>will do button";
+    esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)eventData;
+    esp_websocket_client_handle_t client = (esp_websocket_client_handle_t)handler_args;
+}
 
-
+void MyRemoteDevice::setPinDirection(gpio_num_t pin, gpio_mode_t direction){
+    gpio_set_direction(pin, direction);
+}
+void MyRemoteDevice::setPinLevel(gpio_num_t pin, uint32_t level){
+    gpio_set_level(pin, level);
+}
+uint32_t MyRemoteDevice::getPinLevel(gpio_num_t pin){
+    int level = gpio_get_level(pin);
+    return level;
+}
 
 

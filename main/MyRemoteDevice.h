@@ -9,18 +9,21 @@
 #include "esp_netif.h"
 #include "esp_websocket_client.h"
 #include "cJSON.h"
+#include "driver/gpio.h"
+#include <ArduinoJson.h>
 
 class MyRemoteDevice{
-    public:
+    private:
     static bool isNvsInitialized;
     static bool isNetifInitialized;
     static bool isEventLoopInitialized;
     static nvs_handle_t nvsHandle;
-    static esp_websocket_client_handle_t client;
     static esp_netif_t* netif;
     static EventGroupHandle_t sWifiEventGroup;
     static const int WIFICONNECTEDBIT = BIT0;
     static const int WIFIFAILBIT = BIT1;
+    public:
+    static esp_websocket_client_handle_t client;
     MyRemoteDevice();
     private:
     void espNvsFlashInit();
@@ -33,6 +36,11 @@ class MyRemoteDevice{
     void sayHello();
     esp_err_t connectToWifi();
     void createWebsocketDeviceServer();
+    static void websocketEventHandler1(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData);
     static void websocketEventHandler(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData);
+    static void websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData);
+    void setPinDirection(gpio_num_t pin,  gpio_mode_t direction);
+    void setPinLevel(gpio_num_t pin,  uint32_t level);
+    uint32_t getPinLevel(gpio_num_t pin);
 };
 

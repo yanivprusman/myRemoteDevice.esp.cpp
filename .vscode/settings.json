@@ -9,7 +9,9 @@
       "stdio.h": "c",
       "101_hi.h": "c",
       "esp_system.h": "c",
-      "esp_http_server.h": "c"
+      "esp_http_server.h": "c",
+      "iostream": "cpp",
+      "string": "cpp"
     },
     "memory-view.showMemoryPanel": true
 }
