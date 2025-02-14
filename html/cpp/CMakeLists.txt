@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+project(your_project_name)
+find_package(Flatbuffers REQUIRED)
+include_directories("/home/yaniv/101_coding/myRemoteDeviceEspCpp/flatBuffers/mrd")
+add_executable(my_flatbuffers_example main.cpp)
+target_link_libraries(my_flatbuffers_example PRIVATE flatbuffers)

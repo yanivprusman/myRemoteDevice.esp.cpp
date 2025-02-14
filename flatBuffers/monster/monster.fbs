@@ -1,0 +1,10 @@
+// monster.fbs
+namespace MyGame;
+
+table Monster {
+  name:string;
+  hp:short;
+  mana:short;
+}
+
+root_type Monster;
