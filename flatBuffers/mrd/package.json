@@ -1,0 +1,26 @@
+{
+  "name": "mrd-project",
+  "version": "1.0.0",
+  "description": "MRD FlatBuffers Project",
+  "main": "js/mrd.js",
+  "module": "mjs/mrd.js",
+  "files": [
+    "js/**/*.js",
+    "js/**/*.d.ts",
+    "mjs/**/*.js",
+    "mjs/**/*.d.ts",
+    "ts/**/*.ts"
+  ],
+  "scripts": {
+    "compile": "tsc && tsc -p tsconfig.mjs.json && esbuild js/mrd.js --minify --global-name=mrd --bundle --outfile=js/mrd.min.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "esbuild": "^0.19.8",
+    "eslint": "^8.55.0",
+    "typescript": "5.3.3",
+    "flatbuffers": "^25.2.10"
+  }
+}

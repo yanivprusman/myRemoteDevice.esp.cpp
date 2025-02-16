@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+message WebSocketMessage {
+  int32 resource_id = 1;
+  oneof payload {
+    GetPageRequest get_page_request = 2;
+    GetPageResponse get_page_response = 3;
+    // Add other message types as needed
+  }
+}
+
+message GetPageRequest {
+  string action = 1;  // Will contain "getPage"
+}
+
+message GetPageResponse {
+  int32 resource_id = 1;
+  string action = 2;  // Will contain "respondingToGetPage"
+  string page = 3;
+}

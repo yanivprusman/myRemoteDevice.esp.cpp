@@ -1,0 +1,220 @@
+prompt
+
+mrd.fbs:
+namespace theMRDNameSpace;
+enum types:byte {server=0,client=1}
+enum actions:byte {getPage=0}
+table MRD {
+    type:types;
+    action:actions;
+    data:string;
+}
+root_type MRD;
+in terminal:
+flatc --ts mrd.fbs
+this generates :
+in folder: yaniv@ubuntu:~/101_coding/myRemoteDeviceEspCpp/flatBuffers/mrd$ 
+mrd.ts:
+export * as theMRDNameSpace from './the-mrdname-space.js';
+the-mrdname-space.ts:
+export { MRD } from './the-mrdname-space/mrd.js';
+export { actions } from './the-mrdname-space/actions.js';
+export { types } from './the-mrdname-space/types.js';
+and a subfolder: yaniv@ubuntu:~/101_coding/myRemoteDeviceEspCpp/flatBuffers/mrd/the-mrdname-space$ :
+actions.ts:
+export enum actions {
+    getPage = 0
+}
+mrd.ts:
+
+import * as flatbuffers from 'flatbuffers';
+
+import { actions } from '../the-mrdname-space/actions.js';
+import { types } from '../the-mrdname-space/types.js';
+
+
+export class MRD {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MRD {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsMRD(bb:flatbuffers.ByteBuffer, obj?:MRD):MRD {
+  return (obj || new MRD()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsMRD(bb:flatbuffers.ByteBuffer, obj?:MRD):MRD {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MRD()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+type():types {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : types.server;
+}
+
+action():actions {
+  const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : actions.getPage;
+}
+
+data():string|null
+data(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+data(optionalEncoding?:any):string|Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+}
+
+static startMRD(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+}
+
+static addType(builder:flatbuffers.Builder, type:types) {
+  builder.addFieldInt8(0, type, types.server);
+}
+
+static addAction(builder:flatbuffers.Builder, action:actions) {
+  builder.addFieldInt8(1, action, actions.getPage);
+}
+
+static addData(builder:flatbuffers.Builder, dataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, dataOffset, 0);
+}
+
+static endMRD(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static finishMRDBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset);
+}
+
+static finishSizePrefixedMRDBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset, undefined, true);
+}
+
+static createMRD(builder:flatbuffers.Builder, type:types, action:actions, dataOffset:flatbuffers.Offset):flatbuffers.Offset {
+  MRD.startMRD(builder);
+  MRD.addType(builder, type);
+  MRD.addAction(builder, action);
+  MRD.addData(builder, dataOffset);
+  return MRD.endMRD(builder);
+}
+}
+types.ts:
+export enum types {
+    server = 0,
+    client = 1
+}
+in terminal:
+tsc *.ts
+this generates :
+in folder: yaniv@ubuntu:~/101_coding/myRemoteDeviceEspCpp/flatBuffers/mrd$ 
+mrd.js:
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.theMRDNameSpace = void 0;
+exports.theMRDNameSpace = require("./the-mrdname-space.js");
+the-mrdname-space.js:
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.types = exports.actions = exports.MRD = void 0;
+var mrd_js_1 = require("./the-mrdname-space/mrd.js");
+Object.defineProperty(exports, "MRD", { enumerable: true, get: function () { return mrd_js_1.MRD; } });
+var actions_js_1 = require("./the-mrdname-space/actions.js");
+Object.defineProperty(exports, "actions", { enumerable: true, get: function () { return actions_js_1.actions; } });
+var types_js_1 = require("./the-mrdname-space/types.js");
+Object.defineProperty(exports, "types", { enumerable: true, get: function () { return types_js_1.types; } });
+and a subfolder: yaniv@ubuntu:~/101_coding/myRemoteDeviceEspCpp/flatBuffers/mrd/the-mrdname-space$ :
+actions.js:
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.actions = void 0;
+var actions;
+(function (actions) {
+    actions[actions["getPage"] = 0] = "getPage";
+})(actions || (exports.actions = actions = {}));
+mrd.js:
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MRD = void 0;
+var flatbuffers = require("flatbuffers");
+var actions_js_1 = require("../the-mrdname-space/actions.js");
+var types_js_1 = require("../the-mrdname-space/types.js");
+var MRD = /** @class */ (function () {
+    function MRD() {
+        this.bb = null;
+        this.bb_pos = 0;
+    }
+    MRD.prototype.__init = function (i, bb) {
+        this.bb_pos = i;
+        this.bb = bb;
+        return this;
+    };
+    MRD.getRootAsMRD = function (bb, obj) {
+        return (obj || new MRD()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    };
+    MRD.getSizePrefixedRootAsMRD = function (bb, obj) {
+        bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+        return (obj || new MRD()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    };
+    MRD.prototype.type = function () {
+        var offset = this.bb.__offset(this.bb_pos, 4);
+        return offset ? this.bb.readInt8(this.bb_pos + offset) : types_js_1.types.server;
+    };
+    MRD.prototype.action = function () {
+        var offset = this.bb.__offset(this.bb_pos, 6);
+        return offset ? this.bb.readInt8(this.bb_pos + offset) : actions_js_1.actions.getPage;
+    };
+    MRD.prototype.data = function (optionalEncoding) {
+        var offset = this.bb.__offset(this.bb_pos, 8);
+        return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    };
+    MRD.startMRD = function (builder) {
+        builder.startObject(3);
+    };
+    MRD.addType = function (builder, type) {
+        builder.addFieldInt8(0, type, types_js_1.types.server);
+    };
+    MRD.addAction = function (builder, action) {
+        builder.addFieldInt8(1, action, actions_js_1.actions.getPage);
+    };
+    MRD.addData = function (builder, dataOffset) {
+        builder.addFieldOffset(2, dataOffset, 0);
+    };
+    MRD.endMRD = function (builder) {
+        var offset = builder.endObject();
+        return offset;
+    };
+    MRD.finishMRDBuffer = function (builder, offset) {
+        builder.finish(offset);
+    };
+    MRD.finishSizePrefixedMRDBuffer = function (builder, offset) {
+        builder.finish(offset, undefined, true);
+    };
+    MRD.createMRD = function (builder, type, action, dataOffset) {
+        MRD.startMRD(builder);
+        MRD.addType(builder, type);
+        MRD.addAction(builder, action);
+        MRD.addData(builder, dataOffset);
+        return MRD.endMRD(builder);
+    };
+    return MRD;
+}());
+exports.MRD = MRD;
+types.js:
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.types = void 0;
+var types;
+(function (types) {
+    types[types["server"] = 0] = "server";
+    types[types["client"] = 1] = "client";
+})(types || (exports.types = types = {}));
+how can i use it in html?
+the problem is that --js is not supported and flatbuffers only creates CommonJS 
+
