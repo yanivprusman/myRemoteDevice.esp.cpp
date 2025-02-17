@@ -1,5 +1,4 @@
-// mrd.fbs
-// /home/yaniv/101_coding/myRemoteDeviceEspCpp/flatBuffers/mrd/mrd.fbs
+file_identifier "MRDE";
 namespace theMRDNameSpace;
 enum types:byte {server=0,client=1}
 enum actions:byte {getPage=0}
@@ -9,11 +8,3 @@ table MRD {
     data:string;
 }
 root_type MRD;
-
-//namespace MyGame;
-//table Monster {
-//  name:string;
-//  health:int;
-//}
-//root_type Monster;
-

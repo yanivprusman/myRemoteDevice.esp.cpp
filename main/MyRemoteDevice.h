@@ -11,7 +11,7 @@
 #include "cJSON.h"
 #include "driver/gpio.h"
 #include <ArduinoJson.h>
-
+#include "../flatBuffers/mrd/mrd_generated.h"
 class MyRemoteDevice{
     private:
     static bool isNvsInitialized;

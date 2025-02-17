@@ -264,38 +264,6 @@ void MyRemoteDevice::websocketEventHandler(void *handler_args, esp_event_base_t 
         case WEBSOCKET_EVENT_DATA: {
             websocketEventHandlerHandleData(handler_args, base, event_id, eventData);
             break;
-            // char *payload = (char *)data->data_ptr;
-            // int len = data->data_len;
-            // char jsonStr[len + 1];
-            // memcpy(jsonStr, payload, len);
-            // jsonStr[len] = '\0';
-            // cJSON *json = cJSON_Parse(jsonStr);
-            // if (json) {
-            //     cJSON *resourceId = cJSON_GetObjectItem(json, "resourceId");
-            //     cJSON *msg = cJSON_GetObjectItem(json, "msg");
-            //     if (cJSON_IsNumber(resourceId) && cJSON_IsString(msg)) {
-            //         cJSON *msgJson = cJSON_Parse(msg->valuestring);
-            //         if (msgJson) {
-            //             cJSON *action = cJSON_GetObjectItem(msgJson, "action");
-            //             if (cJSON_IsString(action) && strcmp(action->valuestring, "getPage") == 0) {
-            //                 printf("%s\n",homePage);
-            //                 cJSON *response = cJSON_CreateObject();
-            //                 cJSON *responseMsg = cJSON_CreateObject();
-            //                 cJSON_AddNumberToObject(responseMsg, "resourceId", resourceId->valueint);
-            //                 cJSON_AddStringToObject(responseMsg, "action", "respondingToGetPage");
-            //                 cJSON_AddStringToObject(responseMsg, "page", homePage);
-            //                 cJSON_AddItemToObject(response, "msg", responseMsg);
-            //                 char *responseStr = cJSON_PrintUnformatted(response);
-            //                 esp_websocket_client_send_text(client, responseStr, strlen(responseStr), portMAX_DELAY);
-            //                 cJSON_Delete(response);
-            //                 free(responseStr);
-            //             }
-            //             cJSON_Delete(msgJson);
-            //         }
-            //     }
-            //     cJSON_Delete(json);
-            // }
-            // break;
         }
         case WEBSOCKET_EVENT_ERROR:
             ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
@@ -355,9 +323,47 @@ void MyRemoteDevice::websocketEventHandler1(void *handler_args, esp_event_base_t
     }
 }
 void MyRemoteDevice::websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData){
+    const char * TAG = "websocketEventHandlerHandleData";
     char homePage[] = "hi from device 1 what next? <br>will do button";
     esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)eventData;
     esp_websocket_client_handle_t client = (esp_websocket_client_handle_t)handler_args;
+    char *payload = (char *)data->data_ptr;
+    int len = data->data_len;
+    const uint8_t* bufferPointer = reinterpret_cast<const uint8_t*>(data->data_ptr);
+    if (!flatbuffers::BufferHasIdentifier(bufferPointer, "MRD")) {
+        ESP_LOGE(TAG, "Buffer doesn't have MRD identifier");
+        return;
+    }
+    auto mrd = theMRDNameSpace::GetMRD(eventData);
+    char jsonStr[len + 1];
+    memcpy(jsonStr, payload, len);
+    jsonStr[len] = '\0';
+    cJSON *json = cJSON_Parse(jsonStr);
+    if (json) {
+        cJSON *resourceId = cJSON_GetObjectItem(json, "resourceId");
+        cJSON *msg = cJSON_GetObjectItem(json, "msg");
+        if (cJSON_IsNumber(resourceId) && cJSON_IsString(msg)) {
+            cJSON *msgJson = cJSON_Parse(msg->valuestring);
+            if (msgJson) {
+                cJSON *action = cJSON_GetObjectItem(msgJson, "action");
+                if (cJSON_IsString(action) && strcmp(action->valuestring, "getPage") == 0) {
+                    printf("%s\n",homePage);
+                    cJSON *response = cJSON_CreateObject();
+                    cJSON *responseMsg = cJSON_CreateObject();
+                    cJSON_AddNumberToObject(responseMsg, "resourceId", resourceId->valueint);
+                    cJSON_AddStringToObject(responseMsg, "action", "respondingToGetPage");
+                    cJSON_AddStringToObject(responseMsg, "page", homePage);
+                    cJSON_AddItemToObject(response, "msg", responseMsg);
+                    char *responseStr = cJSON_PrintUnformatted(response);
+                    esp_websocket_client_send_text(client, responseStr, strlen(responseStr), portMAX_DELAY);
+                    cJSON_Delete(response);
+                    free(responseStr);
+                }
+                cJSON_Delete(msgJson);
+            }
+        }
+        cJSON_Delete(json);
+    }
 }
 
 void MyRemoteDevice::setPinDirection(gpio_num_t pin, gpio_mode_t direction){
