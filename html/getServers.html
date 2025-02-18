@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>get device servers</title>
+    <script src="https://yanivprusman.github.io/myRemoteDevice.esp.cpp/flatbuffers.min.js"></script>
+    <script src="https://yanivprusman.github.io/myRemoteDevice.esp.cpp/mrd.min.js"></script>
+</head>
+<body>
+    <div id="debug"></div>
+    <div id="content"></div>
+    <script>
+        const ws = new WebSocket('wss://myRemoteDevice.ya-niv.com:8443/wss/?type=client&deviceIdentifier=sdfg&passWord=ggg');
+        ws.onopen = (event) => {
+            ws.send(JSON.stringify({
+                 action: 'getDevicesList'
+            }));
+        };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(JSON.parse(event.data).msg);
+            if (data.action === 'respondingToGetDevicesList') {
+                console.log('Connected devices:', data.devices);
+            }
+        };
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+        ws.onclose = () => {
+            console.log ('something is wrong, onclose');
+        };
+    </script>
+</body>
+</html>

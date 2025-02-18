@@ -262,7 +262,7 @@ void MyRemoteDevice::websocketEventHandler(void *handler_args, esp_event_base_t 
             ESP_LOGI(TAG, "WEBSOCKET_EVENT_DISCONNECTED");
             break;
         case WEBSOCKET_EVENT_DATA: {
-            websocketEventHandlerHandleData(handler_args, base, event_id, eventData);
+            websocketEventHandlerHandleData(handler_args, base, eventData);
             break;
         }
         case WEBSOCKET_EVENT_ERROR:
@@ -322,50 +322,83 @@ void MyRemoteDevice::websocketEventHandler1(void *handler_args, esp_event_base_t
             break;
     }
 }
-void MyRemoteDevice::websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData){
+void MyRemoteDevice::websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, void *eventData){
     const char * TAG = "websocketEventHandlerHandleData";
     char homePage[] = "hi from device 1 what next? <br>will do button";
     esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)eventData;
     esp_websocket_client_handle_t client = (esp_websocket_client_handle_t)handler_args;
     char *payload = (char *)data->data_ptr;
     int len = data->data_len;
-    const uint8_t* bufferPointer = reinterpret_cast<const uint8_t*>(data->data_ptr);
-    if (!flatbuffers::BufferHasIdentifier(bufferPointer, "MRD")) {
-        ESP_LOGE(TAG, "Buffer doesn't have MRD identifier");
-        return;
+    ESP_LOGI(TAG, "WEBSOCKET_EVENT_DATA");
+    ESP_LOGI(TAG, "Received opcode=%d", data->op_code);
+    if (data->op_code == 0x08 && data->data_len == 2) {
+        ESP_LOGW(TAG, "Received closed message with code=%d", 256*data->data_ptr[0] + data->data_ptr[1]);
+    } else {
+        ESP_LOGW(TAG, "Received=%.*s", data->data_len, (char *)data->data_ptr);
     }
-    auto mrd = theMRDNameSpace::GetMRD(eventData);
-    char jsonStr[len + 1];
-    memcpy(jsonStr, payload, len);
-    jsonStr[len] = '\0';
-    cJSON *json = cJSON_Parse(jsonStr);
-    if (json) {
-        cJSON *resourceId = cJSON_GetObjectItem(json, "resourceId");
-        cJSON *msg = cJSON_GetObjectItem(json, "msg");
-        if (cJSON_IsNumber(resourceId) && cJSON_IsString(msg)) {
-            cJSON *msgJson = cJSON_Parse(msg->valuestring);
-            if (msgJson) {
-                cJSON *action = cJSON_GetObjectItem(msgJson, "action");
-                if (cJSON_IsString(action) && strcmp(action->valuestring, "getPage") == 0) {
-                    printf("%s\n",homePage);
-                    cJSON *response = cJSON_CreateObject();
-                    cJSON *responseMsg = cJSON_CreateObject();
-                    cJSON_AddNumberToObject(responseMsg, "resourceId", resourceId->valueint);
-                    cJSON_AddStringToObject(responseMsg, "action", "respondingToGetPage");
-                    cJSON_AddStringToObject(responseMsg, "page", homePage);
-                    cJSON_AddItemToObject(response, "msg", responseMsg);
-                    char *responseStr = cJSON_PrintUnformatted(response);
-                    esp_websocket_client_send_text(client, responseStr, strlen(responseStr), portMAX_DELAY);
-                    cJSON_Delete(response);
-                    free(responseStr);
-                }
-                cJSON_Delete(msgJson);
+    ESP_LOGW(TAG, "Total payload length=%d, data_len=%d, current payload offset=%d", data->payload_len, data->data_len, data->payload_offset);
+    return;
+    
+    if (data->op_code == WS_TRANSPORT_OPCODES_BINARY) {
+        if (data->data_len > 0) {
+
+            //////////////////////////////////////////////
+            ESP_LOGE(TAG, "Event type: %d", (int)data->op_code);
+            if (len > 0) {
+                ESP_LOGE(TAG, "Payload: %.*s", (int)len, payload);
             }
+            ESP_LOGE(TAG, "len=%d", (int)len);
+            //////////////////////////////////////////////
+            ESP_LOGE(TAG,"len=%d\n",len);
+            
+            if (len==0){
+                ESP_LOGE(TAG,"*len=0\n");
+            }else{
+                ESP_LOGE(TAG,"*len=%d\n",len);
+            }
+            const uint8_t* bufferPointer = reinterpret_cast<const uint8_t*>(data->data_ptr);
+            if (len>10){
+                if (!flatbuffers::BufferHasIdentifier(bufferPointer, MRDE)) {
+                    ESP_LOGE(TAG, "Buffer doesn't have MRD identifier");
+                    return;
+                }else{
+                    ESP_LOGE(TAG, "Buffer does have MRD identifier!!!");
+                }
+            }    
         }
-        cJSON_Delete(json);
+        return;
+        // auto mrd = theMRDNameSpace::GetMRD(eventData);
+        char jsonStr[len + 1];
+        memcpy(jsonStr, payload, len);
+        jsonStr[len] = '\0';
+        cJSON *json = cJSON_Parse(jsonStr);
+        if (json) {
+            cJSON *resourceId = cJSON_GetObjectItem(json, "resourceId");
+            cJSON *msg = cJSON_GetObjectItem(json, "msg");
+            if (cJSON_IsNumber(resourceId) && cJSON_IsString(msg)) {
+                cJSON *msgJson = cJSON_Parse(msg->valuestring);
+                if (msgJson) {
+                    cJSON *action = cJSON_GetObjectItem(msgJson, "action");
+                    if (cJSON_IsString(action) && strcmp(action->valuestring, "getPage") == 0) {
+                        printf("%s\n",homePage);
+                        cJSON *response = cJSON_CreateObject();
+                        cJSON *responseMsg = cJSON_CreateObject();
+                        cJSON_AddNumberToObject(responseMsg, "resourceId", resourceId->valueint);
+                        cJSON_AddStringToObject(responseMsg, "action", "respondingToGetPage");
+                        cJSON_AddStringToObject(responseMsg, "page", homePage);
+                        cJSON_AddItemToObject(response, "msg", responseMsg);
+                        char *responseStr = cJSON_PrintUnformatted(response);
+                        esp_websocket_client_send_text(client, responseStr, strlen(responseStr), portMAX_DELAY);
+                        cJSON_Delete(response);
+                        free(responseStr);
+                    }
+                    cJSON_Delete(msgJson);
+                }
+            }
+            cJSON_Delete(json);
+        }
     }
 }
-
 void MyRemoteDevice::setPinDirection(gpio_num_t pin, gpio_mode_t direction){
     gpio_set_direction(pin, direction);
 }

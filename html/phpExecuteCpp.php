@@ -1,8 +1,11 @@
 <?php
 function compile_and_run($cpp_file) {
+    // 'g++ %s -o %s 2>&1'
+    // "g++ -o websocket_client websocket_client.cpp -lwebsockets -pthread";
+    // 'g++ %s -o %s -lixwebsocket -pthread 2>&1'
     $source_path = __DIR__ . '/' . $cpp_file;
     $output_path = substr($source_path, 0, -4) . '.out';
-    $compile_command = sprintf('g++ %s -o %s 2>&1', escapeshellarg($source_path), escapeshellarg($output_path));
+    $compile_command = sprintf('g++ %s -o %s -lixwebsocket -lz -pthread 2>&1', escapeshellarg($source_path), escapeshellarg($output_path));
     $descriptors = [1 => ["pipe", "w"], 2 => ["pipe", "w"]];
     $process = proc_open($compile_command, $descriptors, $pipes, __DIR__, $env);
     if (is_resource($process)) {

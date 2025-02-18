@@ -12,6 +12,7 @@
 #include "driver/gpio.h"
 #include <ArduinoJson.h>
 #include "../flatBuffers/mrd/mrd_generated.h"
+#define MRDE "MRDE"
 class MyRemoteDevice{
     private:
     static bool isNvsInitialized;
@@ -38,7 +39,7 @@ class MyRemoteDevice{
     void createWebsocketDeviceServer();
     static void websocketEventHandler1(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData);
     static void websocketEventHandler(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData);
-    static void websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, int32_t eventId, void *eventData);
+    static void websocketEventHandlerHandleData(void *handler_args, esp_event_base_t base, void *eventData);
     void setPinDirection(gpio_num_t pin,  gpio_mode_t direction);
     void setPinLevel(gpio_num_t pin,  uint32_t level);
     uint32_t getPinLevel(gpio_num_t pin);

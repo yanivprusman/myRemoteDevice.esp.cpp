@@ -254,6 +254,38 @@
             }
           }
         }
+      },
+      {
+        "type": "cppbuild",
+        "label": "C/C++: g++ build with websocket",
+        "command": "/usr/bin/g++",
+        "args": [
+            "-fdiagnostics-color=always",
+            "-g",
+            "${file}",
+            "-o",
+            "${fileDirname}/${fileBasenameNoExtension}",
+            "-lixwebsocket",
+            "-lz",
+            "-pthread"
+        ],
+        "options": {
+            "cwd": "${fileDirname}"
+        },
+        "problemMatcher": [
+            "$gcc"
+        ],
+        "group": {
+            "kind": "build",
+            "isDefault": true
+        }
+      },
+      {
+          "label": "Get PID",
+          "type": "shell",
+          "command": "pgrep -f ${fileBasenameNoExtension}",
+          "problemMatcher": []
       }
+
     ]
   }
